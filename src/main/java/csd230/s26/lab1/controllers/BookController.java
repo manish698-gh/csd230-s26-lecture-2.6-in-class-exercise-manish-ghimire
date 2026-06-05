@@ -26,6 +26,19 @@ public class BookController {
         return "bookList"; // Refers to bookList.html
     }
 
+    // NEW METHOD: View book details (accessible by any logged-in user)
+    @GetMapping("/{id}")
+    public String getBookById(@PathVariable Long id, Model model) {
+        BookEntity book = bookRepository.findById(id).orElse(null);
+
+        if (book == null) {
+            return "redirect:/books";
+        }
+
+        model.addAttribute("book", book);
+        return "bookDetails"; // Refers to bookDetails.html
+    }
+
     @GetMapping("/add")
     public String showAddForm(Model model) {
         model.addAttribute("book", new BookEntity());
@@ -52,6 +65,7 @@ public class BookController {
         }
         return "redirect:/books";
     }
+
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable Long id, Model model) {
         // Look for the book by ID

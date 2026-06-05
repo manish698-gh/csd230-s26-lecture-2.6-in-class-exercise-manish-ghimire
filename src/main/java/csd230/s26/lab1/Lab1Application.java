@@ -7,6 +7,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.crypto.password.PasswordEncoder;  // ADD THIS
 
 import java.time.LocalDateTime;
 
@@ -20,22 +21,26 @@ public class Lab1Application implements CommandLineRunner {
 	private final TicketRepository ticketRepository;
 	private final ProductRepository productRepository;
 	private final CartRepository cartRepository;
-
+	private final PasswordEncoder passwordEncoder;  // ADD THIS
+	private final UserRepository userRepository;    // ADD THIS
 
 	// Hardened Constructor Injection (Standard for S26)
 	public Lab1Application(BookRepository bookRepository,
-						   MagazineRepository magazineRepository,
-						   DiscMagRepository discMagRepository,
-						   TicketRepository ticketRepository,
-						   ProductRepository productRepository,
-						   CartRepository cartRepository) {
+	                       MagazineRepository magazineRepository,
+	                       DiscMagRepository discMagRepository,
+	                       TicketRepository ticketRepository,
+	                       ProductRepository productRepository,
+	                       CartRepository cartRepository,
+	                       PasswordEncoder passwordEncoder,  // ADD THIS
+	                       UserRepository userRepository) {  // ADD THIS
 		this.bookRepository = bookRepository;
 		this.magazineRepository = magazineRepository;
 		this.discMagRepository = discMagRepository;
 		this.ticketRepository = ticketRepository;
 		this.productRepository = productRepository;
 		this.cartRepository = cartRepository;
-
+		this.passwordEncoder = passwordEncoder;  // ADD THIS
+		this.userRepository = userRepository;    // ADD THIS
 	}
 
 	public static void main(String[] args) {
@@ -120,15 +125,15 @@ public class Lab1Application implements CommandLineRunner {
 		CartEntity cart = new CartEntity();
 		cartRepository.save(cart);
 
-// 2. Retrieve an existing book from your generation loop
+		// 2. Retrieve an existing book from your generation loop
 		// get the first book
 		BookEntity someBook = bookRepository.findAll().get(0);  // ... retrieve one of your generated books ...
 
-// 3. Add to cart and save
+		// 3. Add to cart and save
 		cart.addProduct(someBook);
 		cartRepository.save(cart);
 
-// 4. Verification Output
+		// 4. Verification Output
 		System.out.println("\n--- Cart Verification ---");
 		cartRepository.findAll().forEach(c -> {
 			System.out.println("Cart ID: " + c.getId());
@@ -136,5 +141,31 @@ public class Lab1Application implements CommandLineRunner {
 		});
 
 
+		// CREATE USERS
+
+
+		System.out.println("\n--- Creating Users ---");
+
+		// Admin User (Can Add/Edit/Delete books)
+		UserEntity admin = new UserEntity(
+				"admin",
+				passwordEncoder.encode("admin"),  // BCrypt encoded password
+				"ADMIN"
+		);
+		userRepository.save(admin);
+		System.out.println("Saved Admin User: admin / admin");
+
+		// Regular User (Can only View and Add to Cart)
+		UserEntity user = new UserEntity(
+				"user",
+				passwordEncoder.encode("user"),   // BCrypt encoded password
+				"USER"
+		);
+		userRepository.save(user);
+		System.out.println("Saved Regular User: user / user");
+
+		System.out.println("\nDefault users created successfully!");
+		System.out.println("  → Admin login: admin/admin (can add/edit/delete books)");
+		System.out.println("  → User login:  user/user   (can only view and add to cart)");
 	}
 }

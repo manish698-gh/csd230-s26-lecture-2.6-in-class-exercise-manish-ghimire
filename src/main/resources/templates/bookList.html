@@ -1,10 +1,23 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head><title>Bookstore Inventory</title></head>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>Bookstore Inventory</title>
+</head>
 <body>
+
+<!-- User info and logout section -->
+<div style="float:right">
+    Logged in as: <span sec:authentication="name">User</span>
+
+    <form th:action="@{/logout}" method="post" style="display:inline;">
+        <input type="submit" value="Sign Out"/>
+    </form>
+</div>
+
 <h1>Book List</h1>
 
-<!-- ADD THIS LINE - View Cart Link -->
+<!-- View Cart Link -->
 <p><a th:href="@{/cart}">[ 🛒 View My Cart ]</a></p>
 
 <table border="1">
@@ -13,6 +26,7 @@
         <th>Title</th>
         <th>Author</th>
         <th>Price</th>
+        <th>Copies</th>
         <th>Actions</th>
     </tr>
     </thead>
@@ -21,20 +35,30 @@
         <td th:text="${book.title}"></td>
         <td th:text="${book.author}"></td>
         <td th:text="${book.price}"></td>
+        <td th:text="${book.copies}"></td>
         <td>
-            <!-- Link to Edit, passing the specific book ID -->
-            <a th:href="@{/books/edit/{id}(id=${book.id})}">Edit</a> |
+            <!-- Details link  -->
+            <a th:href="@{/books/{id}(id=${book.id})}">Details</a>
 
-            <a th:href="@{/books/delete/{id}(id=${book.id})}"
-               onclick="return confirm('Are you sure?')">Delete</a> |
+            <!-- Admin only actions (hidden from regular users) -->
+            <span sec:authorize="hasRole('ADMIN')">
+                | <a th:href="@{/books/edit/{id}(id=${book.id})}">Edit</a>
+                | <a th:href="@{/books/delete/{id}(id=${book.id})}"
+                     onclick="return confirm('Are you sure?')">Delete</a>
+            </span>
 
-            <!-- ADD THIS LINE - Add to Cart Link -->
-            <strong><a th:href="@{/cart/add/{id}(id=${book.id})}">Add to Cart</a></strong>
+            | <strong><a th:href="@{/cart/add/{id}(id=${book.id})}">Add to Cart</a></strong>
         </td>
     </tr>
     </tbody>
 </table>
+
 <br/>
-<a th:href="@{/books/add}">Add New Book</a>
+
+<!-- Add New Book button - Admin only -->
+<div sec:authorize="hasRole('ADMIN')">
+    <a th:href="@{/books/add}">Add New Book</a>
+</div>
+
 </body>
 </html>
